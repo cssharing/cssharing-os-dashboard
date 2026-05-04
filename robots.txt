@@ -1,0 +1,4 @@
+# 마케팅 OS 대시보드 — 모든 크롤러 차단
+# 이 페이지는 cssharing 내부 운영용. 공개 검색 노출 X.
+User-agent: *
+Disallow: /

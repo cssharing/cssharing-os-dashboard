@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="googlebot" content="noindex, nofollow" />
   <title>마케팅 OS — cssharing</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -21,6 +23,31 @@
 </head>
 <body class="bg-warm text-warm min-h-screen">
 
+  <!-- AUTH GATE -->
+  <div id="auth-gate" class="fixed inset-0 bg-warm flex items-center justify-center z-50">
+    <div class="bg-white rounded-2xl card-shadow p-8 max-w-sm w-full mx-4 border border-warm">
+      <div class="text-center mb-6">
+        <div class="text-5xl mb-3">🔒</div>
+        <h2 class="text-xl font-bold">마케팅 OS</h2>
+        <p class="text-sm text-slate-600 mt-1">비밀번호를 입력해주세요</p>
+        <p class="text-xs text-slate-400 mt-1">cssharing · Private View</p>
+      </div>
+      <form id="auth-form" class="space-y-3">
+        <input id="auth-input" type="password" autocomplete="current-password" autofocus
+          class="w-full px-4 py-2 border border-warm rounded-lg focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100"
+          placeholder="••••••••" />
+        <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-white py-2 rounded-lg font-medium transition">
+          들어가기
+        </button>
+        <div id="auth-error" class="text-sm text-rose-600 hidden text-center">비밀번호가 틀렸습니다</div>
+      </form>
+      <div class="mt-6 text-xs text-slate-400 text-center leading-relaxed">
+        🐾 24시간마다 재인증<br>
+        검색엔진 차단됨 (noindex)
+      </div>
+    </div>
+  </div>
+
   <!-- HEADER -->
   <header class="bg-white border-b border-warm sticky top-0 z-50">
     <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between flex-wrap gap-3">
@@ -32,6 +59,7 @@
       <nav class="flex items-center gap-1 text-sm">
         <a href="#/" class="nav-link px-3 py-1.5 rounded-lg hover:bg-amber-50">홈</a>
         <a href="#/journal" class="nav-link px-3 py-1.5 rounded-lg hover:bg-amber-50">일지</a>
+        <a href="#/tokens" class="nav-link px-3 py-1.5 rounded-lg hover:bg-amber-50">토큰</a>
         <a href="https://github.com/cssharing/cssharing-marketing-os" target="_blank" class="px-3 py-1.5 rounded-lg hover:bg-amber-50 text-slate-500">GitHub →</a>
       </nav>
     </div>
@@ -48,6 +76,79 @@
   </footer>
 
   <script>
+    // ============================================================
+    // 인증 게이트 (Phase 0~1: 클라이언트 측 SHA-256, 24시간 유지)
+    // 비밀번호 변경: PowerShell에서 새 SHA-256 해시 계산 후 STORED_HASH 교체
+    //   $pw = "새비번"
+    //   ([BitConverter]::ToString([System.Security.Cryptography.SHA256]::Create().ComputeHash([System.Text.Encoding]::UTF8.GetBytes($pw))) -replace '-','').ToLower()
+    // ============================================================
+
+    const STORED_HASH = 'e9e03c6dc2e68c18214e53f65d0d1bc732031f92ab078e0d6c5648ef55369261';
+    const AUTH_KEY = 'cssharing-os-auth-v1';
+    const AUTH_DURATION_MS = 24 * 60 * 60 * 1000; // 24시간
+
+    async function sha256Hex(str) {
+      const buf = new TextEncoder().encode(str);
+      const hashBuf = await crypto.subtle.digest('SHA-256', buf);
+      return Array.from(new Uint8Array(hashBuf))
+        .map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    function isAuthed() {
+      try {
+        const d = JSON.parse(localStorage.getItem(AUTH_KEY) || '{}');
+        return d.hash === STORED_HASH && Date.now() < (d.exp || 0);
+      } catch { return false; }
+    }
+
+    async function tryAuth(input) {
+      const h = await sha256Hex(input);
+      if (h === STORED_HASH) {
+        localStorage.setItem(AUTH_KEY, JSON.stringify({
+          hash: h,
+          exp: Date.now() + AUTH_DURATION_MS,
+        }));
+        return true;
+      }
+      return false;
+    }
+
+    function unlockGate() {
+      const gate = document.getElementById('auth-gate');
+      if (gate) gate.style.display = 'none';
+    }
+
+    // 게이트 로직 — 페이지 로드 즉시 체크
+    (function setupGate() {
+      const onReady = () => {
+        if (isAuthed()) {
+          unlockGate();
+          return;
+        }
+        const form = document.getElementById('auth-form');
+        const errEl = document.getElementById('auth-error');
+        const input = document.getElementById('auth-input');
+        if (!form) return;
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          errEl.classList.add('hidden');
+          const ok = await tryAuth(input.value);
+          if (ok) {
+            unlockGate();
+          } else {
+            errEl.classList.remove('hidden');
+            input.value = '';
+            input.focus();
+          }
+        });
+      };
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', onReady);
+      } else {
+        onReady();
+      }
+    })();
+
     // ============================================================
     // 데이터 (정적 — Phase 1+ 자동 동기화로 전환 예정)
     // ============================================================
@@ -187,6 +288,37 @@
     const journal = [
       {
         date: '2026-05-04',
+        time: '저녁',
+        title: '대시보드 v2.2 — 비밀번호 게이트 + 검색엔진 차단',
+        badge: 'Security',
+        badgeColor: 'rose',
+        summary: 'Lesson 17·18 보안 패턴 적용. 공개 URL이지만 비밀번호 + noindex로 무단 접근·검색 노출 차단.',
+        items: [
+          { type: 'security', text: '클라이언트 측 비밀번호 게이트 (SHA-256 해시, 24시간 유지)' },
+          { type: 'security', text: '<meta name="robots" noindex,nofollow> 추가 (구글·네이버 차단)' },
+          { type: 'security', text: 'robots.txt 추가 (모든 크롤러 Disallow)' },
+          { type: 'add', text: '잠금 화면 UI (자물쇠 아이콘 + 입력 폼)' },
+          { type: 'learn', text: '비밀번호는 SHA-256 해시만 저장. 사용자가 변경 가능 (코드 한 줄 교체).' },
+        ],
+        next: ['사용자 비밀번호 변경 (임시 비번 cssharing2026)', 'Cloudflare Access (Phase 5+ 검토)'],
+      },
+      {
+        date: '2026-05-04',
+        time: '저녁',
+        title: '대시보드 v2.1 — 토큰 사용량 페이지 추가',
+        badge: 'Feature',
+        badgeColor: 'rose',
+        summary: '헌법 #1 토큰 효율 KPI 추적용 대시보드 페이지. 봇별·일별 사용량 + 임계값·알람.',
+        items: [
+          { type: 'add', text: '#/tokens 페이지 — 봇별 막대그래프 + 14일 일별 추이' },
+          { type: 'add', text: '메인 한눈에 카드에 [이번주 토큰] 추가 (클릭 → /tokens)' },
+          { type: 'add', text: '임계값 정의 (봇별 주간 200K / 월간 2M / 단일 호출 50K)' },
+          { type: 'learn', text: '의존성 0 (Chart.js 미사용) — Tailwind div 막대로 가볍게' },
+        ],
+        next: ['Phase 1+ 매니저봇 토큰 카운트 시작 (logs/usage/)', 'Anthropic Admin API 연동 검토'],
+      },
+      {
+        date: '2026-05-04',
         time: '오후',
         title: 'Phase 1 진입 — 봇 방 페이지 + 일지 신설',
         badge: 'Phase',
@@ -244,6 +376,8 @@
         content.innerHTML = renderHome();
       } else if (hash === '#/journal') {
         content.innerHTML = renderJournal();
+      } else if (hash === '#/tokens') {
+        content.innerHTML = renderTokens();
       } else if (hash.startsWith('#/bot/')) {
         const botKey = hash.replace('#/bot/', '');
         if (bots[botKey]) {
@@ -298,13 +432,13 @@
               <div class="text-3xl font-bold text-sky-700">12</div>
               <div class="text-xs text-slate-600 mt-1">영감 자료</div>
             </div>
-            <div class="text-center p-4 bg-rose-50 rounded-xl">
-              <div class="text-3xl font-bold text-rose-700">0</div>
-              <div class="text-xs text-slate-600 mt-1">발행물</div>
-            </div>
+            <a href="#/tokens" class="text-center p-4 bg-rose-50 rounded-xl hover:bg-rose-100 transition block">
+              <div class="text-3xl font-bold text-rose-700">0K</div>
+              <div class="text-xs text-slate-600 mt-1">이번주 토큰 →</div>
+            </a>
           </div>
           <div class="mt-4 text-xs text-slate-500">
-            Phase 0 ✅ 완료 / Phase 1 진행 중 (매니저봇 IDENTITY 완료, HEARTBEAT 대기)
+            Phase 0 ✅ 완료 / Phase 1 진행 중 (매니저봇 IDENTITY 완료, HEARTBEAT 대기) · 토큰은 Phase 1+ 자동 측정
           </div>
         </section>
 
@@ -619,6 +753,205 @@
           </ul>
         </section>
       `;
+    }
+
+    // ============================================================
+    // 토큰 사용량 페이지
+    // ============================================================
+
+    const tokenUsage = {
+      source: 'placeholder',  // 'admin_api' | 'manager_count' | 'placeholder'
+      currency: 'tokens',
+      lastUpdated: '2026-05-04',
+
+      thisMonth: {
+        used: 0,
+        budget: 2000000,
+        unit: 'tokens',
+        rateNote: 'Phase 1+ 매니저봇 자체 카운트 시작 예정',
+      },
+
+      byBot: [
+        { key: 'manager', name: '매니저봇', emoji: '👔', tokens: 0, color: 'bg-purple-500' },
+        { key: 'content', name: '콘텐츠봇', emoji: '📑', tokens: 0, color: 'bg-blue-500' },
+        { key: 'performance', name: '퍼포먼스봇', emoji: '📡', tokens: 0, color: 'bg-emerald-500' },
+        { key: 'branding', name: '브랜딩봇', emoji: '🎨', tokens: 0, color: 'bg-pink-500' },
+        { key: 'publisher', name: '퍼블리셔봇', emoji: '📤', tokens: 0, color: 'bg-orange-500' },
+        { key: 'assistant', name: '비서봇', emoji: '📋', tokens: 0, color: 'bg-cyan-500' },
+      ],
+
+      byDay: [
+        // 14일 일별 (정적 자리표시자, 0)
+        { date: '04-21', tokens: 0 }, { date: '04-22', tokens: 0 },
+        { date: '04-23', tokens: 0 }, { date: '04-24', tokens: 0 },
+        { date: '04-25', tokens: 0 }, { date: '04-26', tokens: 0 },
+        { date: '04-27', tokens: 0 }, { date: '04-28', tokens: 0 },
+        { date: '04-29', tokens: 0 }, { date: '04-30', tokens: 0 },
+        { date: '05-01', tokens: 0 }, { date: '05-02', tokens: 0 },
+        { date: '05-03', tokens: 0 }, { date: '05-04', tokens: 0 },
+      ],
+
+      alerts: [
+        { level: 'info', text: '아직 측정 시작 전입니다. Phase 1+에 매니저봇 카운트 활성화.' },
+      ],
+
+      thresholds: {
+        weekly_per_bot: 200000,
+        monthly_total: 2000000,
+        per_call_warning: 50000,
+      },
+    };
+
+    function renderTokens() {
+      const u = tokenUsage;
+      const used = u.thisMonth.used;
+      const budget = u.thisMonth.budget;
+      const pct = budget > 0 ? Math.min(100, Math.round((used / budget) * 100)) : 0;
+
+      const totalThisWeek = u.byBot.reduce((s, b) => s + b.tokens, 0);
+      const maxBot = Math.max(1, ...u.byBot.map(b => b.tokens));
+
+      const barsHtml = u.byBot.map(b => {
+        const widthPct = maxBot > 0 ? (b.tokens / maxBot) * 100 : 0;
+        return `
+          <div class="flex items-center gap-3 text-sm">
+            <span class="w-32 flex items-center gap-2"><span>${b.emoji}</span><span>${b.name}</span></span>
+            <div class="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden">
+              <div class="h-full ${b.color} transition-all" style="width: ${widthPct}%"></div>
+            </div>
+            <span class="w-20 text-right text-xs font-mono">${formatTokens(b.tokens)}</span>
+          </div>
+        `;
+      }).join('');
+
+      const maxDay = Math.max(1, ...u.byDay.map(d => d.tokens));
+      const dayBarsHtml = u.byDay.map(d => {
+        const heightPct = maxDay > 0 ? (d.tokens / maxDay) * 100 : 0;
+        return `
+          <div class="flex flex-col items-center justify-end flex-1 h-32 group cursor-default">
+            <div class="text-xs font-mono text-slate-400 mb-1 opacity-0 group-hover:opacity-100">${formatTokens(d.tokens)}</div>
+            <div class="w-full bg-amber-200 rounded-t transition-all" style="height: ${Math.max(2, heightPct)}%"></div>
+            <div class="text-[10px] text-slate-500 mt-1">${d.date.slice(3)}</div>
+          </div>
+        `;
+      }).join('');
+
+      const alertsHtml = u.alerts.length > 0 ? u.alerts.map(a => {
+        const colorMap = {
+          info: 'bg-sky-50 border-sky-200 text-sky-800',
+          warning: 'bg-amber-50 border-amber-200 text-amber-800',
+          danger: 'bg-rose-50 border-rose-200 text-rose-800',
+        };
+        const iconMap = { info: 'ℹ️', warning: '⚠️', danger: '🚨' };
+        return `
+          <div class="flex items-start gap-3 p-3 rounded-lg border ${colorMap[a.level] || colorMap.info}">
+            <span>${iconMap[a.level] || 'ℹ️'}</span>
+            <span class="text-sm">${a.text}</span>
+          </div>
+        `;
+      }).join('') : '<div class="text-sm text-slate-500">알람 없음</div>';
+
+      const sourceLabel = {
+        placeholder: '⚪ 자리표시자 (실측정 X)',
+        manager_count: '🟡 매니저봇 자체 카운트',
+        admin_api: '🟢 Anthropic Admin API',
+      }[u.source] || u.source;
+
+      return `
+        <section>
+          <a href="#/" class="text-xs text-sky-600 hover:underline">← 홈</a>
+          <div class="mt-3 flex items-end justify-between flex-wrap gap-3 mb-6">
+            <div>
+              <h1 class="text-2xl font-bold flex items-center gap-2"><span>🔥</span> 토큰 사용량 (Token Usage)</h1>
+              <p class="text-sm text-slate-600 mt-1">봇별·일별 토큰 소비 모니터링. 헌법 토큰 효율 KPI 추적용.</p>
+            </div>
+            <div class="text-xs text-slate-500 text-right">
+              <div>출처: ${sourceLabel}</div>
+              <div>갱신: ${u.lastUpdated}</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 이번달 한눈에 -->
+        <section class="bg-white rounded-2xl card-shadow p-6 border border-warm">
+          <h2 class="text-lg font-semibold mb-4 flex items-center gap-2"><span>📊</span> 이번달 한눈에</h2>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div class="text-center p-4 bg-amber-50 rounded-xl">
+              <div class="text-3xl font-bold text-amber-700">${formatTokens(used)}</div>
+              <div class="text-xs text-slate-600 mt-1">사용</div>
+            </div>
+            <div class="text-center p-4 bg-emerald-50 rounded-xl">
+              <div class="text-3xl font-bold text-emerald-700">${pct}%</div>
+              <div class="text-xs text-slate-600 mt-1">예산 사용 (${formatTokens(budget)} 중)</div>
+            </div>
+            <div class="text-center p-4 bg-sky-50 rounded-xl">
+              <div class="text-3xl font-bold text-sky-700">${u.alerts.filter(a => a.level !== 'info').length}</div>
+              <div class="text-xs text-slate-600 mt-1">활성 알람</div>
+            </div>
+          </div>
+          <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+            <div class="h-full bg-amber-400 transition-all" style="width: ${pct}%"></div>
+          </div>
+          <div class="text-xs text-slate-500 mt-3">${u.thisMonth.rateNote}</div>
+        </section>
+
+        <!-- 봇별 (이번주) -->
+        <section class="bg-white rounded-2xl card-shadow p-6 border border-warm">
+          <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+            <h2 class="text-lg font-semibold flex items-center gap-2"><span>👥</span> 봇별 사용량 (이번주)</h2>
+            <span class="text-xs text-slate-500">합계: ${formatTokens(totalThisWeek)}</span>
+          </div>
+          <div class="space-y-3">${barsHtml}</div>
+        </section>
+
+        <!-- 일별 추이 (14일) -->
+        <section class="bg-white rounded-2xl card-shadow p-6 border border-warm">
+          <h2 class="text-lg font-semibold mb-4 flex items-center gap-2"><span>📈</span> 일별 추이 (지난 14일)</h2>
+          <div class="flex items-end gap-1 h-40">${dayBarsHtml}</div>
+          <div class="text-xs text-slate-500 mt-3">막대 위에 마우스 올리면 정확한 값 표시. 0인 날은 매니저봇 미가동.</div>
+        </section>
+
+        <!-- 임계값·알람 -->
+        <section class="bg-white rounded-2xl card-shadow p-6 border border-warm">
+          <h2 class="text-lg font-semibold mb-4 flex items-center gap-2"><span>🚨</span> 임계값·알람</h2>
+          <div class="grid md:grid-cols-3 gap-3 mb-4">
+            <div class="p-3 bg-slate-50 rounded-lg">
+              <div class="text-xs text-slate-500">봇별 주간 임계</div>
+              <div class="text-lg font-bold mt-1">${formatTokens(u.thresholds.weekly_per_bot)}</div>
+            </div>
+            <div class="p-3 bg-slate-50 rounded-lg">
+              <div class="text-xs text-slate-500">월간 합계 예산</div>
+              <div class="text-lg font-bold mt-1">${formatTokens(u.thresholds.monthly_total)}</div>
+            </div>
+            <div class="p-3 bg-slate-50 rounded-lg">
+              <div class="text-xs text-slate-500">단일 호출 경고</div>
+              <div class="text-lg font-bold mt-1">${formatTokens(u.thresholds.per_call_warning)}</div>
+            </div>
+          </div>
+          <div class="space-y-2">${alertsHtml}</div>
+        </section>
+
+        <!-- 측정 방식 로드맵 -->
+        <section class="bg-amber-50 rounded-2xl p-5 border border-warm">
+          <h3 class="font-semibold mb-3 flex items-center gap-2"><span>🔮</span> 측정 방식 로드맵</h3>
+          <ul class="space-y-2 text-sm text-slate-700">
+            <li class="flex items-start gap-2"><span class="text-slate-500 mt-0.5">⚪</span><div><b>Phase 0~1 (지금)</b>: 자리표시자만, 실 측정 X</div></li>
+            <li class="flex items-start gap-2"><span class="text-amber-600 mt-0.5">🟡</span><div><b>Phase 1+</b>: 매니저봇이 호출마다 토큰 메타 기록 → <code>logs/usage/YYYY-MM-DD.json</code></div></li>
+            <li class="flex items-start gap-2"><span class="text-emerald-600 mt-0.5">🟢</span><div><b>Phase 2+</b>: Anthropic Admin API 연동 또는 사용자 시트 직접 입력 (정확)</div></li>
+            <li class="flex items-start gap-2"><span class="text-sky-600 mt-0.5">🔵</span><div><b>Phase 5+</b>: 봇별 임계값·자동 알람·예산 초과 시 매니저봇 일시 정지</div></li>
+          </ul>
+          <div class="mt-4 pt-4 border-t border-warm text-xs text-slate-600">
+            <b>헌법 7대 규율 #1</b>: 토큰 효율 = 핵심 KPI. 이 페이지는 그 추적 도구.
+          </div>
+        </section>
+      `;
+    }
+
+    function formatTokens(n) {
+      if (n === 0) return '0';
+      if (n < 1000) return n.toString();
+      if (n < 1000000) return (n / 1000).toFixed(1) + 'K';
+      return (n / 1000000).toFixed(2) + 'M';
     }
 
     function renderNotFound() {
