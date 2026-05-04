@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>마케팅 OS — cssharing</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif; }
+    .bg-warm { background-color: #FFFBF5; }
+    .text-warm { color: #2C2420; }
+    .border-warm { border-color: #E8DFD3; }
+    .badge { @apply text-xs font-medium px-2 py-0.5 rounded-full; }
+    .card-shadow { box-shadow: 0 1px 3px rgba(44, 36, 32, 0.08), 0 1px 2px rgba(44, 36, 32, 0.04); }
+    .card-shadow:hover { box-shadow: 0 4px 12px rgba(44, 36, 32, 0.10); transition: box-shadow 0.2s; }
+  </style>
+</head>
+<body class="bg-warm text-warm min-h-screen">
+
+  <!-- HEADER -->
+  <header class="max-w-6xl mx-auto px-6 pt-10 pb-6">
+    <div class="flex items-center justify-between flex-wrap gap-4">
+      <div>
+        <div class="flex items-center gap-3 mb-2">
+          <span class="text-4xl">🏠</span>
+          <h1 class="text-3xl font-bold">마케팅 OS</h1>
+          <span class="text-xs text-slate-500 px-2 py-1 bg-white rounded-full border border-warm">cssharing</span>
+        </div>
+        <p class="text-sm text-slate-600">유미의 6부서 멀티에이전트 운영체계 — Claude Code 기반</p>
+      </div>
+      <div class="text-right text-xs text-slate-500">
+        <div>D:\김유미\클로드코드방\</div>
+        <div id="lastUpdated" class="mt-1">갱신: —</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-6 pb-16 space-y-8">
+
+    <!-- 한눈에 -->
+    <section class="bg-white rounded-2xl card-shadow p-6 border border-warm">
+      <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+        <span>📊</span> 한눈에
+      </h2>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="text-center p-4 bg-amber-50 rounded-xl">
+          <div class="text-3xl font-bold text-amber-700">0/6</div>
+          <div class="text-xs text-slate-600 mt-1">부서 입주</div>
+        </div>
+        <div class="text-center p-4 bg-emerald-50 rounded-xl">
+          <div class="text-3xl font-bold text-emerald-700">2/5</div>
+          <div class="text-xs text-slate-600 mt-1">GAS 봇 운영</div>
+        </div>
+        <div class="text-center p-4 bg-sky-50 rounded-xl">
+          <div class="text-3xl font-bold text-sky-700">7</div>
+          <div class="text-xs text-slate-600 mt-1">영감 자료</div>
+        </div>
+        <div class="text-center p-4 bg-rose-50 rounded-xl">
+          <div class="text-3xl font-bold text-rose-700">0</div>
+          <div class="text-xs text-slate-600 mt-1">발행물</div>
+        </div>
+      </div>
+      <div class="mt-4 text-xs text-slate-500">
+        Phase 0 (빈 집 짓기) ✅ 완료 / Phase 1 (매니저봇 가동) 진입 대기
+      </div>
+    </section>
+
+    <!-- 6부서 카드 -->
+    <section>
+      <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+        <span>👥</span> 6부서
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="depts"></div>
+    </section>
+
+    <!-- 운영 구조 -->
+    <section class="bg-white rounded-2xl card-shadow p-6 border border-warm">
+      <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+        <span>📂</span> 운영 구조
+      </h2>
+      <div class="grid md:grid-cols-2 gap-6">
+        <div>
+          <h3 class="text-sm font-semibold text-slate-700 mb-3">정체성·설정</h3>
+          <ul class="space-y-2 text-sm">
+            <li class="flex items-center gap-2">
+              <span class="px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs font-medium">헌법</span>
+              <code class="text-slate-700">CLAUDE.md</code>
+              <span class="text-xs text-slate-500">— 운영 규약</span>
+            </li>
+            <li class="flex items-center gap-2">
+              <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-medium">인덱스</span>
+              <code class="text-slate-700">INDEX.md</code>
+              <span class="text-xs text-slate-500">— 마스터 인덱스</span>
+            </li>
+            <li class="flex items-center gap-2">
+              <span class="px-2 py-0.5 bg-pink-100 text-pink-700 rounded text-xs font-medium">메모리</span>
+              <code class="text-slate-700">memory/</code>
+              <span class="text-xs text-slate-500">— 4파일 (user/feedback/project/reference)</span>
+            </li>
+            <li class="flex items-center gap-2">
+              <span class="px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded text-xs font-medium">자료</span>
+              <code class="text-slate-700">reference/</code>
+              <span class="text-xs text-slate-500">— GAS·영감·브랜드</span>
+            </li>
+            <li class="flex items-center gap-2">
+              <span class="px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-xs font-medium">권한</span>
+              <code class="text-slate-700">.claude/settings.json</code>
+              <span class="text-xs text-slate-500">— 부서별 deny/allow</span>
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="text-sm font-semibold text-slate-700 mb-3">업무 폴더</h3>
+          <ul class="space-y-2 text-sm">
+            <li class="flex items-center gap-2">
+              <span class="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-medium">작업</span>
+              <code class="text-slate-700">data/</code>
+              <span class="text-xs text-slate-500">— 부서별 작업물</span>
+            </li>
+            <li class="flex items-center gap-2">
+              <span class="px-2 py-0.5 bg-orange-100 text-orange-700 rounded text-xs font-medium">로그</span>
+              <code class="text-slate-700">logs/</code>
+              <span class="text-xs text-slate-500">— 대화·결정·검수·개선</span>
+            </li>
+            <li class="flex items-center gap-2">
+              <span class="px-2 py-0.5 bg-cyan-100 text-cyan-700 rounded text-xs font-medium">캠페인</span>
+              <code class="text-slate-700">operations/</code>
+              <span class="text-xs text-slate-500">— 진행 중 시즌·프로젝트</span>
+            </li>
+            <li class="flex items-center gap-2">
+              <span class="px-2 py-0.5 bg-stone-100 text-stone-700 rounded text-xs font-medium">보관</span>
+              <code class="text-slate-700">archives/</code>
+              <span class="text-xs text-slate-500">— 종료된 캠페인</span>
+            </li>
+            <li class="flex items-center gap-2">
+              <span class="px-2 py-0.5 bg-rose-100 text-rose-700 rounded text-xs font-medium">자동</span>
+              <code class="text-slate-700">.github/workflows/</code>
+              <span class="text-xs text-slate-500">— 야간 cron</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 외부 시스템 -->
+    <section class="bg-white rounded-2xl card-shadow p-6 border border-warm">
+      <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+        <span>🔧</span> 외부 시스템 연결
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="externals"></div>
+    </section>
+
+    <!-- 영감 자료 -->
+    <section class="bg-white rounded-2xl card-shadow p-6 border border-warm">
+      <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+        <span>💡</span> 영감 자료
+      </h2>
+      <div class="space-y-3" id="inspirations"></div>
+    </section>
+
+    <!-- 다음 할 일 -->
+    <section class="bg-white rounded-2xl card-shadow p-6 border border-warm">
+      <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+        <span>📝</span> 다음 할 일
+      </h2>
+      <div class="grid md:grid-cols-2 gap-4">
+        <div>
+          <h3 class="text-sm font-semibold text-slate-700 mb-2">유미가 할 일 (선행)</h3>
+          <ul class="space-y-2 text-sm text-slate-700">
+            <li class="flex items-start gap-2">
+              <input type="checkbox" class="mt-1" />
+              <span>GitHub Private 레포 생성 + 이 폴더 push</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <input type="checkbox" class="mt-1" />
+              <span>구글 드라이브 폴더 3종 (_OS_logs, _OS_published, _OS_archive)</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <input type="checkbox" class="mt-1" />
+              <span>OS_Jobs 시트 생성 (Job Queue)</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <input type="checkbox" class="mt-1" />
+              <span>③ CMAS GAS 코드 + ④ 주간보고 GAS 코드를 reference\gas\ 에 자리표시자 처리 후 저장</span>
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="text-sm font-semibold text-slate-700 mb-2">매니저봇이 할 일 (Phase 1 진입 시)</h3>
+          <ul class="space-y-2 text-sm text-slate-700">
+            <li class="flex items-start gap-2">
+              <span class="text-amber-600">★</span>
+              <span><b>HEARTBEAT.md</b> 작성 — 시간대별 일과표</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-amber-600">★</span>
+              <span><b>IDENTITY.md</b> 작성 — 인격·아바타·채널</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-amber-600">★</span>
+              <span>triage·status-board·work-audit 스킬 첫 구현</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-amber-600">★</span>
+              <span>외부 검증 (Trust but verify) 의무화</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="max-w-6xl mx-auto px-6 pb-10 text-center text-xs text-slate-500">
+    마케팅 OS · cssharing · 유미의 방 🐾<br>
+    Claude Code · GitHub Actions · 구글 드라이브 · NAS · GAS 봇 5개
+  </footer>
+
+  <script>
+    // ============================================================
+    // 데이터 (현재는 정적, 나중에 INDEX.md 또는 시트 API에서 fetch)
+    // ============================================================
+
+    const depts = [
+      { name: '매니저봇', alias: '마케팅봇', icon: '👔', role: '단일 소통 창구·위임·검수', phase: 1, status: '⚪', tag: '총괄', tagColor: 'purple' },
+      { name: '콘텐츠봇', icon: '📑', role: '채널별 카피 생성·멀티유즈', phase: 2, status: '⚪', tag: '생산', tagColor: 'blue' },
+      { name: '퍼포먼스봇', icon: '📡', role: 'KPI·이상감지·트렌드', phase: 3, status: '⚪', tag: '분석', tagColor: 'emerald' },
+      { name: '브랜딩봇', icon: '🎨', role: '톤·비주얼 검수·거부권', phase: 4, status: '⚪', tag: '검수', tagColor: 'pink' },
+      { name: '퍼블리셔봇', icon: '📤', role: '인쇄·카드뉴스·Figma', phase: 4, status: '⚪', tag: '제작', tagColor: 'orange' },
+      { name: '비서봇', icon: '📋', role: '주간보고·리드·일정', phase: 5, status: '⚪', tag: '잡일', tagColor: 'cyan' },
+    ];
+
+    const externals = [
+      { label: 'GitHub Private 레포', icon: '🐙', status: '⚪', note: '사용자 생성 대기' },
+      { label: '구글 드라이브 폴더', icon: '📁', status: '⚪', note: '_OS_logs, _OS_published, _OS_archive' },
+      { label: '사내 NAS', icon: '💾', status: '⚪', note: '권한 확보 대기' },
+      { label: 'OS_Jobs 시트 (Job Queue)', icon: '📊', status: '⚪', note: 'Phase 1 생성' },
+      { label: '⑦ 파워링크 GAS', icon: '🔍', status: '🟢', note: '운영 중' },
+      { label: '⑨ CMAS GAS', icon: '✏️', status: '🟢', note: '운영 중' },
+      { label: '⑥ 주간보고 GAS', icon: '📝', status: '🟡', note: '부분 운영' },
+      { label: '⑧ 카드뉴스 GAS', icon: '🖼️', status: '🔴', note: '일시중단 (DALL-E 키 대기)' },
+      { label: '⑤ 리드 GAS', icon: '👥', status: '🟡', note: '진행 중' },
+      { label: '① 스카웃트 GAS', icon: '🕵️', status: '🟢', note: '운영 중' },
+    ];
+
+    const inspirations = [
+      {
+        title: '뽀짝이의 방 (워크스페이스 구조)',
+        url: 'https://www.gpters.org/ax-lab/post/tour-cats-house-1-GjegRI69VrZ9Hzt',
+        absorb: 'HEARTBEAT.md, IDENTITY.md, operations/, archives/',
+        priority: '★★',
+      },
+      {
+        title: '뽀짝이 Lesson 11 — 자율성 메커니즘',
+        url: 'https://bbojjak-library.gpters.org/lessons/lesson-11',
+        absorb: '하트비트 cron, Trust-but-verify, 에러 메모리, exec-approvals',
+        priority: '★★★',
+      },
+      {
+        title: '뽀짝이 Lesson 13 — 이미지 자동화',
+        url: 'https://bbojjak-library.gpters.org/lessons/lesson-13',
+        absorb: 'HTML+Playwright 카드 생성, design-system.md',
+        priority: '★★★',
+      },
+      {
+        title: 'Notion 7개 (분석 대기)',
+        url: '#',
+        absorb: '사용자 페이지 공개 처리 후 분석',
+        priority: '⚪',
+      },
+    ];
+
+    // ============================================================
+    // 렌더링
+    // ============================================================
+
+    const tagColorMap = {
+      purple: 'bg-purple-100 text-purple-700',
+      blue: 'bg-blue-100 text-blue-700',
+      emerald: 'bg-emerald-100 text-emerald-700',
+      pink: 'bg-pink-100 text-pink-700',
+      orange: 'bg-orange-100 text-orange-700',
+      cyan: 'bg-cyan-100 text-cyan-700',
+    };
+
+    document.getElementById('depts').innerHTML = depts.map(d => `
+      <div class="bg-white rounded-2xl card-shadow p-5 border border-warm">
+        <div class="flex items-start justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <span class="text-2xl">${d.icon}</span>
+            <div>
+              <div class="font-semibold text-warm">${d.name}</div>
+              ${d.alias ? `<div class="text-xs text-slate-500">별칭: ${d.alias}</div>` : ''}
+            </div>
+          </div>
+          <span class="text-xs ${tagColorMap[d.tagColor] || 'bg-slate-100 text-slate-700'} px-2 py-0.5 rounded-full font-medium">${d.tag}</span>
+        </div>
+        <p class="text-sm text-slate-600 mb-3">${d.role}</p>
+        <div class="flex items-center justify-between text-xs">
+          <span class="text-slate-500">Phase ${d.phase}</span>
+          <span class="font-medium">${d.status} 미입주</span>
+        </div>
+      </div>
+    `).join('');
+
+    document.getElementById('externals').innerHTML = externals.map(e => `
+      <div class="flex items-center gap-3 p-3 rounded-lg border border-warm bg-amber-50/30">
+        <span class="text-xl">${e.icon}</span>
+        <div class="flex-1 min-w-0">
+          <div class="font-medium text-sm truncate">${e.label}</div>
+          <div class="text-xs text-slate-500 truncate">${e.note}</div>
+        </div>
+        <span class="text-lg">${e.status}</span>
+      </div>
+    `).join('');
+
+    document.getElementById('inspirations').innerHTML = inspirations.map(i => `
+      <div class="flex items-start gap-3 p-3 rounded-lg border border-warm hover:bg-amber-50/30 transition">
+        <span class="text-amber-600 font-semibold pt-0.5">${i.priority}</span>
+        <div class="flex-1 min-w-0">
+          <div class="font-medium text-sm">${i.title}</div>
+          <div class="text-xs text-slate-500 mt-0.5">흡수: ${i.absorb}</div>
+          ${i.url !== '#' ? `<a href="${i.url}" target="_blank" class="text-xs text-sky-600 hover:underline mt-1 inline-block">원문 →</a>` : ''}
+        </div>
+      </div>
+    `).join('');
+
+    document.getElementById('lastUpdated').textContent = '갱신: ' + new Date().toLocaleString('ko-KR');
+  </script>
+</body>
+</html>
