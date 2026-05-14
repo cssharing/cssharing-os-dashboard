@@ -60,6 +60,7 @@
         <a href="#/" class="nav-link px-3 py-1.5 rounded-lg hover:bg-amber-50">홈</a>
         <a href="#/journal" class="nav-link px-3 py-1.5 rounded-lg hover:bg-amber-50">일지</a>
         <a href="#/tokens" class="nav-link px-3 py-1.5 rounded-lg hover:bg-amber-50">토큰</a>
+        <a href="#/calendar" class="nav-link px-3 py-1.5 rounded-lg hover:bg-amber-50">캘린더</a>
         <a href="https://github.com/cssharing/cssharing-marketing-os" target="_blank" class="px-3 py-1.5 rounded-lg hover:bg-amber-50 text-slate-500">GitHub →</a>
       </nav>
     </div>
@@ -378,6 +379,8 @@
         content.innerHTML = renderJournal();
       } else if (hash === '#/tokens') {
         content.innerHTML = renderTokens();
+      } else if (hash === '#/calendar') {
+        content.innerHTML = renderCalendar();
       } else if (hash.startsWith('#/bot/')) {
         const botKey = hash.replace('#/bot/', '');
         if (bots[botKey]) {
@@ -952,6 +955,74 @@
       if (n < 1000) return n.toString();
       if (n < 1000000) return (n / 1000).toFixed(1) + 'K';
       return (n / 1000000).toFixed(2) + 'M';
+    }
+
+    // ============================================================
+    // 캘린더 페이지 (구글 캘린더 임베드 — 보기 전용)
+    // ============================================================
+
+    const CALENDAR_EMAIL = 'team@cssharing.com';
+    const CALENDAR_TZ = 'Asia/Seoul';
+
+    function renderCalendar() {
+      const embedSrc = `https://calendar.google.com/calendar/embed?src=${encodeURIComponent(CALENDAR_EMAIL)}&ctz=${encodeURIComponent(CALENDAR_TZ)}&mode=WEEK&showTitle=0&showPrint=0&showTabs=1&showCalendars=0`;
+      const openUrl = `https://calendar.google.com/calendar/u/0/r?cid=${encodeURIComponent(CALENDAR_EMAIL)}`;
+
+      return `
+        <section>
+          <a href="#/" class="text-xs text-sky-600 hover:underline">← 홈</a>
+          <div class="mt-3 flex items-end justify-between flex-wrap gap-3 mb-6">
+            <div>
+              <h1 class="text-2xl font-bold flex items-center gap-2"><span>📅</span> 콘텐츠 캘린더</h1>
+              <p class="text-sm text-slate-600 mt-1">콘텐츠 작성·발행 일정. 구글 캘린더 연동 (team@cssharing.com).</p>
+            </div>
+            <a href="${openUrl}" target="_blank"
+              class="bg-amber-500 hover:bg-amber-600 text-white text-sm px-4 py-2 rounded-lg font-medium transition">
+              구글 캘린더에서 열기 (수정) →
+            </a>
+          </div>
+        </section>
+
+        <!-- 임베드 -->
+        <section class="bg-white rounded-2xl card-shadow p-4 border border-warm">
+          <iframe src="${embedSrc}"
+            style="border: 0; border-radius: 12px;"
+            width="100%" height="600" frameborder="0" scrolling="no"
+            title="콘텐츠 캘린더"></iframe>
+        </section>
+
+        <!-- 수정 방법 안내 -->
+        <section class="grid md:grid-cols-2 gap-4">
+          <div class="bg-white rounded-2xl card-shadow p-5 border border-warm">
+            <h3 class="text-sm font-semibold mb-3 flex items-center gap-2"><span>✏️</span> 빠른 수정</h3>
+            <p class="text-sm text-slate-600 mb-3">위 캘린더는 <b>보기 전용</b>입니다. 일정 추가·수정·삭제는:</p>
+            <a href="${openUrl}" target="_blank" class="text-sm text-sky-600 hover:underline">→ 구글 캘린더에서 열기</a>
+            <p class="text-xs text-slate-500 mt-2">구글 캘린더 앱·웹에서 직접 편집하면 이 화면에도 자동 반영됩니다.</p>
+          </div>
+          <div class="bg-white rounded-2xl card-shadow p-5 border border-warm">
+            <h3 class="text-sm font-semibold mb-3 flex items-center gap-2"><span>🤖</span> 자동 일정 관리</h3>
+            <p class="text-sm text-slate-600 mb-2">Claude Code에서 <b>비서봇</b>에게 자연어로:</p>
+            <div class="text-xs bg-slate-50 rounded-lg p-3 font-mono text-slate-700 leading-relaxed">
+              "매거진 043 발행 5/10에 잡아줘"<br>
+              "이번주 콘텐츠 일정 보여줘"<br>
+              "블로그 마감 하루 당겨줘"
+            </div>
+            <p class="text-xs text-slate-500 mt-2">비서봇이 구글 캘린더 MCP로 이벤트 생성·수정 (Phase 5 본격).</p>
+          </div>
+        </section>
+
+        <!-- 캘린더 설정 안내 -->
+        <section class="bg-amber-50 rounded-2xl p-5 border border-warm">
+          <h3 class="font-semibold mb-2 flex items-center gap-2"><span>⚙️</span> 캘린더가 안 보이면</h3>
+          <p class="text-sm text-slate-700 mb-2">구글 캘린더가 <b>임베드 허용 설정</b>이어야 표시됩니다:</p>
+          <ol class="text-xs text-slate-600 space-y-1 list-decimal list-inside">
+            <li>구글 캘린더 → 설정 → 해당 캘린더 → "액세스 권한"</li>
+            <li>"공개 사용 설정" 또는 특정 공유 범위 지정</li>
+            <li>"통합" 섹션의 임베드 코드 확인 → src 일치 확인</li>
+          </ol>
+          <p class="text-xs text-slate-500 mt-3">⚠️ 이 대시보드는 비밀번호 게이트 뒤에 있어 외부 노출은 제한적이지만, 캘린더를 "공개"로 두면 임베드 URL 아는 사람은 일정을 볼 수 있습니다. 민감 일정은 별도 비공개 캘린더 권장.</p>
+        </section>
+      `;
     }
 
     function renderNotFound() {
